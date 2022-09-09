@@ -1,0 +1,72 @@
+./../src/genmc -rc11 -wb -- main.c
+exec
+1
+exec
+1
+Error detected: Attempt to access non-allocated memory!
+Event (3, 12) conflicts with event (1, 10) in graph:
+<-1, 0> main:
+        (0, 1): MALLOC  L.89
+        (0, 2): MALLOC  L.90
+        (0, 3): Wna (, 0) L.91
+        (0, 4): Wna (, 1000) L.92
+        (0, 5): Wna (, 0x20) L.93
+        (0, 6): Wna (, 0x0) L.94
+        (0, 7): Wna (top, 0x10) L.95
+        (0, 8): Wna (end, 0x20) L.96
+        (0, 9): THREAD_CREATE [thread 1] L.99
+        (0, 10): THREAD_CREATE [thread 2] L.102
+        (0, 11): THREAD_CREATE [thread 3] L.105
+        (0, 12): THREAD_JOIN [thread 1] L.107
+        (0, 13): THREAD_JOIN [thread 2] L.108
+        (0, 14): THREAD_JOIN [thread 3] L.109
+<0, 1> threadM1:
+        (1, 1): MALLOC  L.19
+        (1, 2): Wsc (, 10) L.20
+        (1, 3): Wsc (, 0) L.21
+        (1, 4): Racq (top, 16) [(0, 7)] L.23
+        (1, 5): Racq (, 0x20) [(0, 5)]
+        (1, 6): Racq (, 1000) [(0, 4)] L.28
+        (1, 7): Wrel (, 32) L.30
+        (1, 8): CRrel (, 32) [(0, 5)] L.31
+        (1, 9): CWrel (, 64) L.31
+        (1, 10): MALLOC  L.19
+        (1, 11): Wsc (, 20) L.20
+        (1, 12): Wsc (, 0) L.21
+        (1, 13): Racq (top, 16) [(0, 7)] L.23
+        (1, 14): Racq (, 0x40) [(1, 9)]
+        (1, 15): Racq (, 10) [(1, 2)] L.28
+        (1, 16): Rsc (, 10) [(1, 2)] L.35
+        (1, 17): Racq (, 0x20) [(1, 7)]
+        (1, 18): Racq (, 1000) [(0, 4)] L.28
+        (1, 19): Wrel (, 32) L.30
+        (1, 20): CRrel (, 32) [(1, 7)] L.31
+        (1, 21): CWrel (, 96) L.31
+        (1, 22): THREAD_END
+<0, 2> threadA:
+        (2, 1): Racq (top, 16) [(0, 7)] L.48
+        (2, 2): Rsc (, 0) [(0, 3)] L.51
+        (2, 3): Rsc (, 0) [(0, 3)] L.56
+        (2, 4): Racq (, 0x40) [(1, 9)]
+        (2, 5): Rsc (, 10) [(1, 2)] L.51
+        (2, 6): Rsc (, 10) [(1, 2)] L.56
+        (2, 7): THREAD_END
+<0, 3> threadM2:
+        (3, 1): MALLOC  L.19
+        (3, 2): Wsc (, 30) L.20
+        (3, 3): Wsc (, 0) L.21
+        (3, 4): Racq (top, 16) [(0, 7)] L.23
+        (3, 5): Racq (, 0x40) [(1, 9)]
+        (3, 6): Racq (, 10) [(1, 2)] L.28
+        (3, 7): Rsc (, 10) [(1, 2)] L.35
+        (3, 8): Racq (, 0x20) [(1, 7)]
+        (3, 9): Racq (, 1000) [(0, 4)] L.28
+        (3, 10): Wrel (, 32) L.30
+        (3, 11): CRrel (, 96) [(1, 21)] L.31
+        (3, 12): Rsc (, 0) [BOTTOM] L.35
+
+The allocating operation (malloc()) does not happen-before the memory access!
+Number of complete executions explored: 1
+Number of blocked executions seen: 1
+Total wall-clock time: 0.30s
+make: *** [Makefile:2: all] Error 42
