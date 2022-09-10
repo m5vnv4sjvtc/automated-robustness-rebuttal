@@ -118,3 +118,40 @@ make: *** [Makefile:2: all] Error 42
 As we can see there is a robustness violation, when we change the number of threads. Moreover this error does not occur when we change the access modes of the CAS operation to acquire-release.
 
 ## Executing our tool
+
+We run the benchmark through our tool which generates SMT queries for the encodings to check the invariants. We try to find 2 events such that they are `hbSC` but not `hb`. Our tool reports a case where the robustness condition is violated. The encoding for the partial events generated to verify this case can be found in `set-incorrect.smt`. A sample encoding of one event can be seen below - 
+
+```
+(assert 
+	(forall ((i I)) ; for a given invocation
+	(=> (= (itype i) Add) ; if the invocation is Add
+	(and (= (rval (E1e i)) (currd2 i)) ; read value is stored in a local variable currd2
+	(= (stype (E1e i)) E1t)
+	(= (loc (E1e i)) top) ; location of read is top
+	(= (field (E1e i)) Default) ; read field is default
+	(= (etype (E1e i)) R) ; event type if Read
+	(= (elabel (E1e i)) Acq))))) ; event mode is Acquire
+```
+
+Now, when we run Z3 on this, it outputs a model. The model can be found in `output.model`. The robustness violation states that the CAS operations are totally ordered in the SC world, but not in the RC20 world. Thus, we present a snippet of the hbSC code - 
+
+```
+(define-fun hbSC ((x!0 E) (x!1 E)) Bool
+	(or (and (= (k!2234 x!0) E!val!106) (= (k!2234 x!1) E!val!105))
+	(and (= (k!2234 x!0) E!val!162) (= (k!2234 x!1) E!val!161))
+	(and (= (k!2234 x!0) E!val!149) (= (k!2234 x!1) E!val!140))
+	(and (= (k!2234 x!0) E!val!174) (= (k!2234 x!1) E!val!173))) ; E174 and E173 are in HBSC order
+...
+```
+
+But `E174` and `E173` are not in the hb-relation. Moroever, we can see that `E174` and `E173` are the 2 CAS events in the invocations - 
+
+```
+(define-fun E4e ((x!0 I)) E
+	(ite (= x!0 in3) E!val!0
+	(ite (= x!0 in1) E!val!173 ; CAS event in Add invocation
+	(ite (= x!0 in2) E!val!174 ; CAS event in Add invocation
+	E!val!3))))
+```
+
+Thus, we see that our tool generates the necessary robustness violation.
